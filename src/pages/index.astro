@@ -1,0 +1,203 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import WordExplorer from '../components/WordExplorer.astro';
+import SummitVideo from '../components/SummitVideo.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import portrait from '../assets/mahdee-islam.jpg';
+import { getArticles } from '../lib/articles';
+import { SITE, LINKS } from '../config';
+
+const articles = await getArticles();
+const latest = articles.slice(0, 3);
+const og = await getImage({ src: portrait, width: 1200, format: 'jpg' });
+const ogImage = new URL(og.src, SITE.url).href;
+---
+<Base ogImage={ogImage} ogType="profile" current="home">
+  <section class="hero">
+    <div class="frame hero-grid">
+      <div class="hero-copy">
+        <span class="label">Melbourne, Australia</span>
+        <h1>Mahdee Islam</h1>
+        <p class="lede">Software and AI engineer. I build agentic AI systems and automate the work businesses still do by hand. I also research how the Qur'an speaks to the Bible, reading both <em>in the languages they were written and heard in</em>.</p>
+        <div class="actions">
+          <a class="button solid" href="/articles/">Read my articles</a>
+          <a class="button" href={LINKS.linkedin} rel="me">Connect on LinkedIn</a>
+        </div>
+      </div>
+      <figure class="portrait">
+        <Image
+          src={portrait}
+          alt="Mahdee Islam on stage in a dark suit, holding a microphone"
+          widths={[360, 540, 720, 1023]}
+          sizes="(max-width: 760px) 70vw, 380px"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </div>
+  </section>
+
+  <SummitVideo />
+
+  <div class="frame">
+    <section class="section column" id="about" aria-labelledby="about-h">
+      <h2 id="about-h">About</h2>
+      <div class="prose">
+        <p>I'm Mahdee Islam, an engineer and researcher based in Melbourne. I hold a Bachelor of Advanced Computer Science from Monash University and have lived in Melbourne since 2014.</p>
+        <p>On the engineering side I work on retrieval-augmented generation, knowledge graphs and agentic applications, and I co-founded Systemaura to bring that work to small and growing businesses.</p>
+        <p>On the research side I study intertextuality between the Qur'an and the Bible across Hebrew, Aramaic, Syriac and Greek sources. I study comparative theology with Dr. Ali Ataie and founded BelieversHeart, an Islamic learning platform focused on Qur'anic depth and Abrahamic theology.</p>
+      </div>
+    </section>
+
+    <section class="section column" id="work" aria-labelledby="work-h">
+      <h2 id="work-h">Engineering</h2>
+      <ul class="entries">
+        <li>
+          <span class="k">Co-founder</span>
+          <div>
+            <h3>Systemaura</h3>
+            <p>An automation business. We find tasks businesses are doing manually and build systems that do them instead. I design and build the automations.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Integration</span>
+          <div>
+            <h3>Brock Solutions <span class="role">· Software Integration Engineer</span></h3>
+            <p>Worked in the SmartSort team on the SmartSuite platform, integrating and automating the baggage handling system at Melbourne Airport.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">AI applications</span>
+          <div>
+            <h3>JobEscape AI Innovations <span class="role">· Software Engineer</span></h3>
+            <p>Part of a team that shipped two agentic AI applications. I owned the retrieval-augmented generation (RAG) implementation.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Project</span>
+          <div>
+            <h3>Cricket performance GraphRAG</h3>
+            <p>Built solo, end to end: a Neo4j knowledge graph of cricket performance data that answers plain-English questions by translating them into Cypher queries.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Education</span>
+          <div>
+            <h3>Monash University</h3>
+            <p>Bachelor of Advanced Computer Science.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section column" id="research" aria-labelledby="research-h">
+      <h2 id="research-h">Research</h2>
+      <p class="intro">One word, four traditions. Choose a word to see where it comes from.</p>
+      <WordExplorer />
+      <ul class="entries">
+        <li>
+          <span class="k">Article</span>
+          <div>
+            <h3>Surah Maryam and the Gospel of Luke <span class="status">In progress</span></h3>
+            <p>A study of Q 19 read alongside Luke, built around the Qur'anic description of Jesus as God's <em>kalima</em>.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Paper</span>
+          <div>
+            <h3>ʿĪsā ibn Maryam as the Davidic Messiah <span class="status">In progress</span></h3>
+            <p>An academic paper on the Qur'an's Jesus as the Davidic Messiah.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Book</span>
+          <div>
+            <h3>Jesus, the Son of Mary, the Messenger of God <span class="status">In preparation</span></h3>
+            <p>My largest planned work.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Founder</span>
+          <div>
+            <h3>BelieversHeart</h3>
+            <p>Short videos and teaching materials on the Qur'an's language and its conversation with earlier scripture, including a series on Greek loanwords and Aramaic cognates. <a href={LINKS.instagram}>Follow on Instagram</a></p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section column" id="articles" aria-labelledby="articles-h">
+      <div class="section-head">
+        <h2 id="articles-h">Latest articles</h2>
+        {articles.length > 0 && <a href="/articles/">All articles →</a>}
+      </div>
+      {latest.length > 0 ? (
+        <ul class="article-list">
+          {latest.map((article) => <ArticleCard article={article} />)}
+        </ul>
+      ) : (
+        <p class="empty">New essays on the Qur'an and the Bible will appear here.{LINKS.substack && <> Meanwhile, <a href={LINKS.substack}>read them on Substack</a>.</>}</p>
+      )}
+    </section>
+
+    <section class="section column" id="sport" aria-labelledby="sport-h">
+      <h2 id="sport-h">Sport</h2>
+      <ul class="entries">
+        <li>
+          <span class="k">2018 · New Zealand</span>
+          <div>
+            <h3>Under-16 Indoor Cricket World Cup <span class="status">Champions</span></h3>
+            <p>Represented Australia and won the title.</p>
+          </div>
+        </li>
+        <li>
+          <span class="k">Australia</span>
+          <div>
+            <h3>National indoor cricket squad</h3>
+            <p>Selected three times. Received the Junior Ambassador award.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(2.5rem, 7vw, 5rem) clamp(2.5rem, 6vw, 4rem); }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+  .hero-copy { display: grid; gap: 1.25rem; justify-items: start; }
+  h1 { font-size: var(--step-4); line-height: 1.02; letter-spacing: -0.02em; }
+  .lede { font-size: var(--step-1); }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.25rem; }
+
+  .portrait {
+    margin: 0;
+    position: relative;
+    aspect-ratio: 4 / 5;
+    max-width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #3a2414;
+  }
+  .portrait img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; display: block; }
+  .portrait::after {
+    content: ""; position: absolute; inset: auto 0 0 0; height: 4px; background: var(--lapis);
+  }
+
+  @media (max-width: 760px) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr); }
+    .portrait { order: -1; width: min(70vw, 320px); }
+  }
+
+  .prose { display: grid; gap: 1rem; }
+  .intro { color: var(--muted); margin-bottom: -0.5rem; }
+  .section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; }
+  .article-list { margin: 0; padding: 0; border-bottom: 1px solid var(--rule); }
+  .empty { color: var(--muted); }
+</style>

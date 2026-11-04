@@ -1,0 +1,132 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getArticles, formatDate, type Article } from '../../lib/articles';
+import { SITE } from '../../config';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((article, i) => ({
+    params: { slug: article.slug },
+    props: { article, newer: articles[i - 1], older: articles[i + 1] },
+  }));
+}
+
+interface Props { article: Article; newer?: Article; older?: Article }
+const { article, newer, older } = Astro.props;
+const Content = article.entry ? (await render(article.entry)).Content : null;
+
+const pageUrl = new URL(`/articles/${article.slug}/`, SITE.url).href;
+// Posts that first appeared on Substack point search engines to the original.
+const canonical = article.externalUrl ?? pageUrl;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.title,
+  description: article.description || undefined,
+  datePublished: article.date.toISOString(),
+  author: { '@type': 'Person', name: SITE.name, url: SITE.url + '/' },
+  url: pageUrl,
+  ...(article.cover ? { image: article.cover } : {}),
+};
+---
+<Base
+  title={`${article.title} · Mahdee Islam`}
+  description={article.description || `An article by Mahdee Islam.`}
+  canonical={canonical}
+  ogType="article"
+  ogImage={article.cover}
+  jsonLd={jsonLd}
+  current="articles"
+>
+  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <article class="frame">
+    <div class="column wrap">
+      <a class="back" href="/articles/">← All articles</a>
+      <header class="head">
+        <span class="meta">
+          <time datetime={article.date.toISOString()}>{formatDate(article.date)}</time>
+          <span>· {article.readingMinutes} min read</span>
+        </span>
+        <h1>{article.title}</h1>
+        {article.description && <p class="dek">{article.description}</p>}
+        <span class="byline">By Mahdee Islam</span>
+      </header>
+
+      <div class="prose" id="article-body">
+        {Content ? <Content /> : <Fragment set:html={article.html} />}
+      </div>
+
+      {article.externalUrl && (
+        <p class="origin">First published on Substack. <a href={article.externalUrl}>Read and comment on the original</a>.</p>
+      )}
+
+      {(newer || older) && (
+        <nav class="pager" aria-label="More articles">
+          {older ? <a href={`/articles/${older.slug}/`}><span class="label">Older</span>{older.title}</a> : <span></span>}
+          {newer ? <a class="newer" href={`/articles/${newer.slug}/`}><span class="label">Newer</span>{newer.title}</a> : <span></span>}
+        </nav>
+      )}
+    </div>
+  </article>
+</Base>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  const body = document.getElementById('article-body');
+  function update() {
+    if (!bar || !body) return;
+    const rect = body.getBoundingClientRect();
+    const total = rect.height - window.innerHeight * 0.6;
+    const done = Math.min(1, Math.max(0, -rect.top / Math.max(total, 1)));
+    bar.style.transform = `scaleX(${done})`;
+  }
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+  update();
+</script>
+
+<style>
+  .progress {
+    position: fixed; left: 0; right: 0; top: env(safe-area-inset-top, 0px); height: 3px; z-index: 30; pointer-events: none;
+  }
+  .progress span { display: block; height: 100%; background: var(--lapis); transform: scaleX(0); transform-origin: 0 50%; }
+
+  .wrap { display: grid; gap: 2rem; padding-block: clamp(2rem, 6vw, 4rem); }
+  .back { font-size: 0.9rem; text-decoration: none; }
+  .head { display: grid; gap: 0.8rem; }
+  .meta { font: 400 0.78rem/1.4 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  h1 { font-size: clamp(2.1rem, 5.5vw, 3.4rem); line-height: 1.08; letter-spacing: -0.015em; }
+  .dek { font-size: var(--step-1); color: var(--muted); }
+  .byline { font: 500 0.8rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .prose { font-size: 1.075rem; line-height: 1.75; min-width: 0; overflow-wrap: break-word; }
+  .prose > :global(*) { margin-block: 0; }
+  .prose > :global(* + *) { margin-top: 1.1em; }
+  .prose :global(h2) { font-size: var(--step-2); margin-top: 2em; line-height: 1.25; }
+  .prose :global(h3) { font-size: var(--step-1); margin-top: 1.6em; }
+  .prose :global(p) { max-width: none; }
+  .prose :global(blockquote) {
+    margin: 1.5em 0; padding: 0.25em 0 0.25em 1.25em;
+    border-left: 2px solid var(--lapis); font-family: var(--display); font-style: italic;
+  }
+  .prose :global(img) { border-radius: 4px; display: block; margin-inline: auto; }
+  .prose :global(figure) { margin: 1.5em 0; }
+  .prose :global(figcaption) { font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 0.5em; }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--rule); margin: 2.5em 0; }
+  .prose :global(pre) { overflow-x: auto; background: var(--paper-raised); padding: 1rem; border-radius: 4px; font-size: 0.9rem; }
+  .prose :global(code) { font-family: var(--mono); font-size: 0.9em; }
+  .prose :global(table) { display: block; overflow-x: auto; border-collapse: collapse; }
+  .prose :global(th), .prose :global(td) { border: 1px solid var(--rule); padding: 0.4rem 0.6rem; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3em; }
+  .prose :global([lang="ar"]), .prose :global([dir="rtl"]) { font-family: var(--arabic); }
+  .prose :global([lang="he"]) { font-family: var(--hebrew); }
+  .prose :global([lang="syc"]) { font-family: var(--syriac); }
+
+  .origin { font-size: 0.9rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  .pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  .pager a { display: grid; gap: 0.3rem; text-decoration: none; font-family: var(--display); font-size: var(--step-1); line-height: 1.3; }
+  .pager .newer { text-align: right; justify-items: end; }
+  @media (max-width: 560px) { .pager { grid-template-columns: minmax(0, 1fr); } .pager .newer { text-align: left; justify-items: start; } }
+</style>

@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found · Mahdee Islam" description="This page does not exist.">
+  <div class="frame">
+    <section class="column nf">
+      <span class="label">404</span>
+      <h1>This page doesn't exist.</h1>
+      <p>The link may be out of date. <a href="/">Go to the home page</a> or <a href="/articles/">browse the articles</a>.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .nf { display: grid; gap: 1rem; padding-block: clamp(3rem, 10vw, 7rem); }
+  h1 { font-size: var(--step-3); }
+</style>
