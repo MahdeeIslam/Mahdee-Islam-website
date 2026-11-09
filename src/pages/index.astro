@@ -14,6 +14,8 @@ const og = await getImage({ src: portrait, width: 1200, format: 'jpg' });
 const ogImage = new URL(og.src, SITE.url).href;
 ---
 <Base ogImage={ogImage} ogType="profile" current="home">
+  <SummitVideo />
+
   <section class="hero">
     <div class="frame hero-grid">
       <div class="hero-copy">
@@ -37,8 +39,6 @@ const ogImage = new URL(og.src, SITE.url).href;
       </figure>
     </div>
   </section>
-
-  <SummitVideo />
 
   <div class="frame">
     <section class="section column" id="about" aria-labelledby="about-h">
